@@ -1,1 +1,1 @@
-# prerender-cache
+# prerender-cache [![Build Status](https://travis-ci.org/ryanricard/prerender-cache.svg?branch=master)](https://travis-ci.org/ryanricard/prerender-cache)
