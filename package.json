@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/mocha/bin/mocha test/**/*Test.js",
-    "lint": "./node_modules/eslint/bin/eslint.js plugin/** test/**; exit 0"
+    "lint": "./node_modules/eslint/bin/eslint.js plugin/** test/**"
   },
   "keywords": [
     "prerender",
