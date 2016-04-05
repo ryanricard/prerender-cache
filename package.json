@@ -4,7 +4,8 @@
   "description": "Prerender plugin for caching rendered pages",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/mocha/bin/mocha test/**/*Test.js"
+    "test": "./node_modules/mocha/bin/mocha test/**/*Test.js",
+    "lint": "./node_modules/eslint/bin/eslint.js plugin/** test/**; exit 0"
   },
   "keywords": [
     "prerender",
@@ -14,6 +15,9 @@
   "author": "Ryan Ricard",
   "license": "ISC",
   "devDependencies": {
+    "eslint": "^2.7.0",
+    "eslint-config-airbnb": "^6.2.0",
+    "eslint-plugin-react": "^4.2.3",
     "mocha": "^2.4.5"
   }
 }
