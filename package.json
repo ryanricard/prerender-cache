@@ -4,7 +4,7 @@
   "description": "Prerender plugin for caching rendered pages",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "./node_modules/mocha/bin/mocha test/**/*Test.js"
   },
   "keywords": [
     "prerender",
@@ -12,5 +12,8 @@
     "mongodb"
   ],
   "author": "Ryan Ricard",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "mocha": "^2.4.5"
+  }
 }
