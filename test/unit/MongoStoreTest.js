@@ -2,7 +2,7 @@ var TestHelper = require('../TestHelper');
 var assertions = TestHelper.assertions;
 var assert = TestHelper.assert;
 var expect = TestHelper.expect;
-var quibble = require('quibble')
+var quibble = require('quibble');
 var sinon = require('sinon');
 
 // Doubles
@@ -12,14 +12,14 @@ var collectionDouble = require('../doubles/mongodb/collection');
 
 quibble('mongodb', mongodbDouble);
 
-var Cache = require('../../plugin/stores/mongo')
+var Cache = require('../../plugin/stores/mongo');
 
 describe('Cache', function() {
   describe('constructor', function() {
     it('should invoke constructor hooks', function(done) {
       assertions(2);
 
-      var cache = new Cache(null, function onConnect() {
+      new Cache(null, function onConnect() {
         assert(true, 'Cache should invoke connect hook');
       }, function onCreateCollection() {
         assert(true, 'Cache should invoke create collection hook');
@@ -36,7 +36,7 @@ describe('Cache', function() {
     it('should connect to mongo with default options', function() {
       sinon.spy(mongodbDouble.MongoClient, 'connect');
 
-      var cache = new Cache();
+      new Cache();
 
       assert(mongodbDouble.MongoClient.connect.calledOnce);
       assert(mongodbDouble.MongoClient.connect.calledWith('mongodb://localhost:27017/prerender'));
@@ -45,7 +45,7 @@ describe('Cache', function() {
     it('should connect to mongo with custom options', function() {
       sinon.spy(mongodbDouble.MongoClient, 'connect');
 
-      var cache = new Cache({
+      new Cache({
         url: 'mongodb://example:27017'
       });
 
@@ -62,7 +62,7 @@ describe('Cache', function() {
     it('should create collection with default options', function() {
       sinon.spy(dbDouble, 'createCollection');
 
-      var cache = new Cache();
+      new Cache();
 
       assert(dbDouble.createCollection.calledOnce);
       assert(dbDouble.createCollection.calledWith('pages'));
@@ -71,7 +71,7 @@ describe('Cache', function() {
     it('should connect to mongo with custom options', function() {
       sinon.spy(dbDouble, 'createCollection');
 
-      var cache = new Cache({
+      new Cache({
         collectionName: 'records'
       });
 
@@ -122,7 +122,7 @@ describe('Cache', function() {
         expect(args[1].$set.foo).to.equal('bar');
 
         // callback assertions
-        expect(args[2].upsert).to.be.true;
+        assert(args[2].upsert);
 
         done();
       });

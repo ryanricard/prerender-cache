@@ -19,20 +19,20 @@ MongoStore.prototype.connect = function connect(onConnect, onCreateCollection) {
   var context = this;
 
   MongoClient.connect(this.url, function(err, db) {
-    if(err) throw err;
+    if (err) throw err;
     context.db = db;
-    context.db.createCollection(context.collectionName, function(err, collection){
-      if(err) throw err;
+    context.db.createCollection(context.collectionName, function(err, collection) {
+      if (err) throw err;
       onCreateCollection.apply(onCreateCollection, arguments);
-    })
+    });
     onConnect.apply(onCreateCollection, arguments);
   });
 };
 
 MongoStore.prototype.get = function(key, callback) {
   this.db.collection(this.collectionName, function(err, collection) {
-    collection.findOne({key: key}, function (err, item) {
-      if(err) throw err;
+    collection.findOne({ key: key }, function (err, item) {
+      if (err) throw err;
       callback.apply(callback, arguments);
     });
   });
@@ -41,9 +41,9 @@ MongoStore.prototype.get = function(key, callback) {
 MongoStore.prototype.set = function(key, record, callback) {
   this.db.collection(this.collectionName, function(err, collection) {
     collection.update({ key: key }, { $set: record }, { upsert: true }, function(err, result, upserted) {
-      if(err) throw err;
+      if (err) throw err;
       callback.apply(callback, arguments);
-    })
+    });
   });
 };
 

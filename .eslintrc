@@ -35,3 +35,4 @@ rules:
   prefer-rest-params: 0
   prefer-template: 0
   vars-on-top: 0
+  max-len: [2, 150, 2, { ignoreUrls: true, ignoreComments: false }]
