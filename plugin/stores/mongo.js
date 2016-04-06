@@ -1,3 +1,5 @@
+var EventEmitter = require('events');
+var util = require('util');
 var MongoClient = require('mongodb').MongoClient;
 var calculateExpiration = require('../util').calculateExpiration;
 var noop = function() {};
@@ -11,10 +13,14 @@ var MongoStore = function MongoStore(options, onConnect, onCreateCollection) {
   this.collectionName = options.collectionName || 'pages';
   this.ttl = options.ttl || null;
 
+  EventEmitter.call(this);
+
   this.connect(onConnect, onCreateCollection);
 
   return this;
 };
+
+util.inherits(MongoStore, EventEmitter);
 
 MongoStore.prototype.connect = function connect(onConnect, onCreateCollection) {
   onConnect = onConnect || noop;
@@ -45,21 +51,31 @@ MongoStore.prototype.connect = function connect(onConnect, onCreateCollection) {
 };
 
 MongoStore.prototype.get = function(key, callback) {
+  var context = this;
+
   this.db.collection(this.collectionName, function(err, collection) {
     collection.findOne({ key: key }, function (err, item) {
       if (err) throw err;
+
+      if (item && item.value) {
+        context.emit('record:found', item);
+      } else {
+        context.emit('record:not-found', key);
+      }
       callback.apply(callback, arguments);
     });
   });
 };
 
 MongoStore.prototype.set = function(key, record, callback) {
+  var context = this;
 
   if (this.ttl > 0) record.expireAt = calculateExpiration(new Date(), this.ttl);
 
   this.db.collection(this.collectionName, function(err, collection) {
     collection.update({ key: key }, { $set: record }, { upsert: true }, function(err, result, upserted) {
       if (err) throw err;
+      context.emit('record:persisted', result);
       callback.apply(callback, arguments);
     });
   });
