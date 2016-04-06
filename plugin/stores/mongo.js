@@ -1,11 +1,15 @@
 var MongoClient = require('mongodb').MongoClient;
+var calculateExpiration = require('../util').calculateExpiration;
 var noop = function() {};
+
+var TTL_INDEX_NAME = 'record_ttl';
 
 var MongoStore = function MongoStore(options, onConnect, onCreateCollection) {
   options = options || {};
 
   this.url = options.url || 'mongodb://localhost:27017/prerender';
   this.collectionName = options.collectionName || 'pages';
+  this.ttl = options.ttl || null;
 
   this.connect(onConnect, onCreateCollection);
 
@@ -23,6 +27,17 @@ MongoStore.prototype.connect = function connect(onConnect, onCreateCollection) {
     context.db = db;
     context.db.createCollection(context.collectionName, function(err, collection) {
       if (err) throw err;
+
+      if (context.ttl) {
+        collection.ensureIndex({ createdAt: 1 }, { name: TTL_INDEX_NAME, expireAfterSeconds: context.ttl }, function(err, results) {
+          if (err) throw err;
+        });
+      } else {
+        collection.dropIndex(TTL_INDEX_NAME, function(err, results) {
+          if (err) throw err;
+        });
+      }
+
       onCreateCollection.apply(onCreateCollection, arguments);
     });
     onConnect.apply(onCreateCollection, arguments);
@@ -39,6 +54,9 @@ MongoStore.prototype.get = function(key, callback) {
 };
 
 MongoStore.prototype.set = function(key, record, callback) {
+
+  if (this.ttl > 0) record.expireAt = calculateExpiration(new Date(), this.ttl);
+
   this.db.collection(this.collectionName, function(err, collection) {
     collection.update({ key: key }, { $set: record }, { upsert: true }, function(err, result, upserted) {
       if (err) throw err;

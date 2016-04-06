@@ -80,6 +80,40 @@ describe('Cache', function() {
     });
   });
 
+  describe('ensureIndex(), dropIndex()', function() {
+    afterEach(function() {
+      collectionDouble.ensureIndex.restore();
+      collectionDouble.dropIndex.restore();
+    });
+
+    it('should drop index when a ttl is not specified', function() {
+      var ensureIndexMock = sinon.mock(collectionDouble).expects('ensureIndex').never();
+      var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').once().withArgs('record_ttl');
+
+      new Cache();
+
+      assert(ensureIndexMock.verify());
+      assert(dropIndexMock.verify());
+    });
+
+    it('should ensure index when a ttl is specified', function() {
+      sinon.spy(collectionDouble, 'ensureIndex');
+      var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').never();
+      var ttl = 1234;
+
+      new Cache({
+        ttl: ttl
+      });
+
+      var args = collectionDouble.ensureIndex.args[0];
+
+      assert(collectionDouble.ensureIndex.calledOnce);
+      expect(args[0].createdAt).to.equal(1);
+      expect(args[1].expireAfterSeconds).to.equal(ttl);
+      assert(dropIndexMock.verify());
+    });
+  });
+
   describe('get()', function() {
     afterEach(function() {
       collectionDouble.findOne.restore();
@@ -123,6 +157,40 @@ describe('Cache', function() {
 
         // callback assertions
         assert(args[2].upsert);
+
+        done();
+      });
+    });
+
+    it('should persist record without ttl when not specified', function(done) {
+      sinon.spy(collectionDouble, 'update');
+
+      var cache = new Cache();
+
+      cache.set('/http://example.com/some/page', { foo: 'bar', expireAt: null }, function(err, value) {
+        // spy assertions
+        var record = collectionDouble.update.args[0][1].$set;
+        expect(record.expireAt).to.be.null;
+
+        done();
+      });
+    });
+
+    it('should persist record with ttl when specified', function(done) {
+      sinon.spy(collectionDouble, 'update');
+      var now = new Date();
+      var ttl = 432000; // seconds
+      var threshold = 2; // seconds
+
+      var cache = new Cache({
+        ttl: ttl
+      });
+
+      cache.set('/http://example.com/some/page', { foo: 'bar' }, function(err, value) {
+        // spy assertions
+        var record = collectionDouble.update.args[0][1].$set;
+        var duration = (record.expireAt.getTime() - now.getTime()) / 1000; // duration in seconds
+        expect(duration).to.be.within(ttl, ttl + threshold);
 
         done();
       });
