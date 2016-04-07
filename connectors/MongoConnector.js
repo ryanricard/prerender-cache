@@ -2,8 +2,8 @@ var util = require('util');
 var MongoClient = require('mongodb').MongoClient;
 var AbstractConnector = require('./AbstractConnector');
 var calculateExpiration = require('../lib/util').calculateExpiration;
-var noop = function() {};
 
+var NOOP = function() {};
 var TTL_INDEX_NAME = 'record_ttl';
 
 var MongoConnector = function MongoConnector(options, onConnect, onCreateCollection) {
@@ -21,8 +21,8 @@ var MongoConnector = function MongoConnector(options, onConnect, onCreateCollect
 util.inherits(MongoConnector, AbstractConnector);
 
 MongoConnector.prototype.connect = function connect(onConnect, onCreateCollection) {
-  onConnect = onConnect || noop;
-  onCreateCollection = onCreateCollection || noop;
+  onConnect = onConnect || NOOP;
+  onCreateCollection = onCreateCollection || NOOP;
 
   var context = this;
 
@@ -70,6 +70,8 @@ MongoConnector.prototype.get = function(key, callback) {
 };
 
 MongoConnector.prototype.set = function(key, record, callback) {
+  callback = callback || NOOP;
+
   var context = this;
 
   if (this.ttl > 0) record.expireAt = calculateExpiration(new Date(), this.ttl);
