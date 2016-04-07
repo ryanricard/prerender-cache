@@ -1,0 +1,1 @@
+throw new Error('Require cache connector `prerender-cache/mongo`');

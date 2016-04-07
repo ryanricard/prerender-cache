@@ -1,5 +1,5 @@
 var expect = require('chai').expect;
-var util = require('../../plugin/util');
+var util = require('../../lib/util');
 
 describe('Util', function() {
   describe('calculateExpiration()', function() {

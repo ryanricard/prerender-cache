@@ -12,17 +12,17 @@ var collectionDouble = require('../doubles/mongodb/collection');
 
 quibble('mongodb', mongodbDouble);
 
-var MongoStore = require('../../plugin/stores/mongo');
+var MongoConnector = require('../../connectors/MongoConnector');
 
-describe('MongoStore', function() {
+describe('MongoConnector', function() {
   describe('constructor', function() {
     it('should invoke constructor hooks', function(done) {
       assertions(2);
 
-      new MongoStore(null, function onConnect() {
-        assert(true, 'MongoStore should invoke connect hook');
+      new MongoConnector(null, function onConnect() {
+        assert(true, 'MongoConnector should invoke connect hook');
       }, function onCreateCollection() {
-        assert(true, 'MongoStore should invoke create collection hook');
+        assert(true, 'MongoConnector should invoke create collection hook');
         done();
       });
     });
@@ -36,7 +36,7 @@ describe('MongoStore', function() {
     it('should connect to mongo with default options', function() {
       sinon.spy(mongodbDouble.MongoClient, 'connect');
 
-      new MongoStore();
+      new MongoConnector();
 
       assert(mongodbDouble.MongoClient.connect.calledOnce);
       assert(mongodbDouble.MongoClient.connect.calledWith('mongodb://localhost:27017/prerender'));
@@ -45,7 +45,7 @@ describe('MongoStore', function() {
     it('should connect to mongo with custom options', function() {
       sinon.spy(mongodbDouble.MongoClient, 'connect');
 
-      new MongoStore({
+      new MongoConnector({
         url: 'mongodb://example:27017'
       });
 
@@ -62,7 +62,7 @@ describe('MongoStore', function() {
     it('should create collection with default options', function() {
       sinon.spy(dbDouble, 'createCollection');
 
-      new MongoStore();
+      new MongoConnector();
 
       assert(dbDouble.createCollection.calledOnce);
       assert(dbDouble.createCollection.calledWith('pages'));
@@ -71,7 +71,7 @@ describe('MongoStore', function() {
     it('should connect to mongo with custom options', function() {
       sinon.spy(dbDouble, 'createCollection');
 
-      new MongoStore({
+      new MongoConnector({
         collectionName: 'records'
       });
 
@@ -90,7 +90,7 @@ describe('MongoStore', function() {
       var ensureIndexMock = sinon.mock(collectionDouble).expects('ensureIndex').never();
       var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').once().withArgs('record_ttl');
 
-      new MongoStore();
+      new MongoConnector();
 
       assert(ensureIndexMock.verify());
       assert(dropIndexMock.verify());
@@ -101,7 +101,7 @@ describe('MongoStore', function() {
       var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').never();
       var ttl = 1234;
 
-      new MongoStore({
+      new MongoConnector({
         ttl: ttl
       });
 
@@ -122,9 +122,9 @@ describe('MongoStore', function() {
     it('should call collection.findOne() with correct params and invoke callback with expected value', function(done) {
       sinon.spy(collectionDouble, 'findOne');
 
-      var cache = new MongoStore();
+      var connector = new MongoConnector();
 
-      cache.get('/http://example.com/some/page', function(err, item) {
+      connector.get('/http://example.com/some/page', function(err, item) {
         // spy assertions
         var args = collectionDouble.findOne.args[0];
         assert(collectionDouble.findOne.calledOnce);
@@ -146,9 +146,9 @@ describe('MongoStore', function() {
     it('should call collection.update() with correct params', function(done) {
       sinon.spy(collectionDouble, 'update');
 
-      var cache = new MongoStore();
+      var connector = new MongoConnector();
 
-      cache.set('/http://example.com/some/page', { foo: 'bar' }, function(err, value) {
+      connector.set('/http://example.com/some/page', { foo: 'bar' }, function(err, value) {
         // spy assertions
         var args = collectionDouble.update.args[0];
         assert(collectionDouble.update.calledOnce);
@@ -165,9 +165,9 @@ describe('MongoStore', function() {
     it('should persist record without ttl when not specified', function(done) {
       sinon.spy(collectionDouble, 'update');
 
-      var cache = new MongoStore();
+      var connector = new MongoConnector();
 
-      cache.set('/http://example.com/some/page', { foo: 'bar', expireAt: null }, function(err, value) {
+      connector.set('/http://example.com/some/page', { foo: 'bar', expireAt: null }, function(err, value) {
         // spy assertions
         var record = collectionDouble.update.args[0][1].$set;
         expect(record.expireAt).to.be.null;
@@ -182,11 +182,11 @@ describe('MongoStore', function() {
       var ttl = 432000; // seconds
       var threshold = 2; // seconds
 
-      var cache = new MongoStore({
+      var connector = new MongoConnector({
         ttl: ttl
       });
 
-      cache.set('/http://example.com/some/page', { foo: 'bar' }, function(err, value) {
+      connector.set('/http://example.com/some/page', { foo: 'bar' }, function(err, value) {
         // spy assertions
         var record = collectionDouble.update.args[0][1].$set;
         var duration = (record.expireAt.getTime() - now.getTime()) / 1000; // duration in seconds

@@ -11,9 +11,9 @@ var collectionDouble = require('../doubles/mongodb/collection');
 
 quibble('mongodb', mongodbDouble);
 
-var MongoStore = require('../../plugin/stores/mongo');
+var MongoConnector = require('../../connectors/MongoConnector');
 
-describe('MongoStore events', function() {
+describe('MongoConnector events', function() {
   describe('get()', function() {
     afterEach(function() {
       collectionDouble.findOne.restore();
@@ -28,17 +28,17 @@ describe('MongoStore events', function() {
         });
       });
 
-      var cache = new MongoStore();
-
-      cache.on('record:found', function(item) {
+      var connector = new MongoConnector();
+      console.log(connector.on);
+      connector.on('record:found', function(item) {
         expect(item.value).to.equal('winning');
       });
 
-      cache.on('record:not-found', function(key) {
-        assert(false, 'MongoStore instance should not emit a not found event when a record is found');
+      connector.on('record:not-found', function(key) {
+        assert(false, 'MongoConnector instance should not emit a not found event when a record is found');
       });
 
-      cache.get('/http://example.com/some/page', function(err, item) {
+      connector.get('/http://example.com/some/page', function(err, item) {
         expect(item.value).to.equal('winning');
         done();
       });
@@ -51,17 +51,17 @@ describe('MongoStore events', function() {
         cb();
       });
 
-      var cache = new MongoStore();
+      var connector = new MongoConnector();
 
-      cache.on('record:found', function(key) {
-        assert(false, 'MongoStore instance should not emit a found event when a record is not found');
+      connector.on('record:found', function(key) {
+        assert(false, 'MongoConnector instance should not emit a found event when a record is not found');
       });
 
-      cache.on('record:not-found', function(key) {
+      connector.on('record:not-found', function(key) {
         expect(key).to.equal('/http://example.com/some/page');
       });
 
-      cache.get('/http://example.com/some/page', function(err, item) {
+      connector.get('/http://example.com/some/page', function(err, item) {
         expect(item).to.be.undefined;
         done();
       });
@@ -72,13 +72,13 @@ describe('MongoStore events', function() {
     it('should emit record persisted event upon a record being saved', function(done) {
       assertions(1);
 
-      var cache = new MongoStore();
+      var connector = new MongoConnector();
 
-      cache.on('record:persisted', function() {
-        assert(true, 'MongoStore instance should emit record persisted event when a record is saved');
+      connector.on('record:persisted', function() {
+        assert(true, 'MongoConnector instance should emit record persisted event when a record is saved');
       });
 
-      cache.set('/http://example.com/some/page', { value: 'foobar' }, function(err, result, upserted) {
+      connector.set('/http://example.com/some/page', { value: 'foobar' }, function(err, result, upserted) {
         done();
       });
     });

@@ -1,28 +1,26 @@
-var EventEmitter = require('events');
 var util = require('util');
 var MongoClient = require('mongodb').MongoClient;
-var calculateExpiration = require('../util').calculateExpiration;
+var AbstractConnector = require('./AbstractConnector');
+var calculateExpiration = require('../lib/util').calculateExpiration;
 var noop = function() {};
 
 var TTL_INDEX_NAME = 'record_ttl';
 
-var MongoStore = function MongoStore(options, onConnect, onCreateCollection) {
+var MongoConnector = function MongoConnector(options, onConnect, onCreateCollection) {
   options = options || {};
 
   this.url = options.url || 'mongodb://localhost:27017/prerender';
   this.collectionName = options.collectionName || 'pages';
   this.ttl = options.ttl || null;
 
-  EventEmitter.call(this);
-
-  this.connect(onConnect, onCreateCollection);
+  this._super.apply(this, arguments);
 
   return this;
 };
 
-util.inherits(MongoStore, EventEmitter);
+util.inherits(MongoConnector, AbstractConnector);
 
-MongoStore.prototype.connect = function connect(onConnect, onCreateCollection) {
+MongoConnector.prototype.connect = function connect(onConnect, onCreateCollection) {
   onConnect = onConnect || noop;
   onCreateCollection = onCreateCollection || noop;
 
@@ -50,7 +48,7 @@ MongoStore.prototype.connect = function connect(onConnect, onCreateCollection) {
   });
 };
 
-MongoStore.prototype.get = function(key, callback) {
+MongoConnector.prototype.get = function(key, callback) {
   var context = this;
 
   this.db.collection(this.collectionName, function(err, collection) {
@@ -67,7 +65,7 @@ MongoStore.prototype.get = function(key, callback) {
   });
 };
 
-MongoStore.prototype.set = function(key, record, callback) {
+MongoConnector.prototype.set = function(key, record, callback) {
   var context = this;
 
   if (this.ttl > 0) record.expireAt = calculateExpiration(new Date(), this.ttl);
@@ -81,4 +79,4 @@ MongoStore.prototype.set = function(key, record, callback) {
   });
 };
 
-module.exports = MongoStore;
+module.exports = MongoConnector;
