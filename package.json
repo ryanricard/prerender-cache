@@ -24,6 +24,7 @@
     "sinon": "^1.17.3"
   },
   "dependencies": {
-    "mongodb": "^2.1.14"
+    "mongodb": "^2.1.14",
+    "object-assign": "^4.0.1"
   }
 }
