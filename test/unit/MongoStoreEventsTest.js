@@ -30,8 +30,8 @@ describe('MongoConnector events', function() {
 
       var connector = new MongoConnector();
       console.log(connector.on);
-      connector.on('record:found', function(item) {
-        expect(item.value).to.equal('winning');
+      connector.on('record:found', function(key, record) {
+        expect(record).to.equal('winning');
       });
 
       connector.on('record:not-found', function(key) {
