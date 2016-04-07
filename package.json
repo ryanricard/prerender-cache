@@ -7,13 +7,17 @@
     "test": "./node_modules/mocha/bin/mocha test/**/*Test.js",
     "lint": "./node_modules/eslint/bin/eslint.js plugin/** test/**"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:ryanricard/prerender-cache.git"
+  },
+  "author": "Ryan Ricard",
+  "license": "ISC",
   "keywords": [
     "prerender",
     "cache",
     "mongodb"
   ],
-  "author": "Ryan Ricard",
-  "license": "ISC",
   "devDependencies": {
     "chai": "^3.5.0",
     "eslint": "^2.7.0",
