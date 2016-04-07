@@ -37,8 +37,12 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
           if (err) throw err;
         });
       } else {
-        collection.dropIndex(TTL_INDEX_NAME, function(err, results) {
-          if (err) throw err;
+        collection.indexInformation(function(err, indexes) {
+          if (indexes[TTL_INDEX_NAME]) {
+            collection.dropIndex(TTL_INDEX_NAME, function(err, results) {
+              if (err) throw err;
+            });
+          }
         });
       }
 
