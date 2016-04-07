@@ -11,9 +11,9 @@ var collectionDouble = require('../doubles/mongodb/collection');
 
 quibble('mongodb', mongodbDouble);
 
-var Cache = require('../../plugin/stores/mongo');
+var MongoStore = require('../../plugin/stores/mongo');
 
-describe('Cache events', function() {
+describe('MongoStore events', function() {
   describe('get()', function() {
     afterEach(function() {
       collectionDouble.findOne.restore();
@@ -28,14 +28,14 @@ describe('Cache events', function() {
         });
       });
 
-      var cache = new Cache();
+      var cache = new MongoStore();
 
       cache.on('record:found', function(item) {
         expect(item.value).to.equal('winning');
       });
 
       cache.on('record:not-found', function(key) {
-        assert(false, 'Cache instance should not emit a not found event when a record is found');
+        assert(false, 'MongoStore instance should not emit a not found event when a record is found');
       });
 
       cache.get('/http://example.com/some/page', function(err, item) {
@@ -51,10 +51,10 @@ describe('Cache events', function() {
         cb();
       });
 
-      var cache = new Cache();
+      var cache = new MongoStore();
 
       cache.on('record:found', function(key) {
-        assert(false, 'Cache instance should not emit a found event when a record is not found');
+        assert(false, 'MongoStore instance should not emit a found event when a record is not found');
       });
 
       cache.on('record:not-found', function(key) {
@@ -72,10 +72,10 @@ describe('Cache events', function() {
     it('should emit record persisted event upon a record being saved', function(done) {
       assertions(1);
 
-      var cache = new Cache();
+      var cache = new MongoStore();
 
       cache.on('record:persisted', function() {
-        assert(true, 'Cache instance should emit record persisted event when a record is saved');
+        assert(true, 'MongoStore instance should emit record persisted event when a record is saved');
       });
 
       cache.set('/http://example.com/some/page', { value: 'foobar' }, function(err, result, upserted) {
