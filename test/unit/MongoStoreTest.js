@@ -135,7 +135,8 @@ describe('MongoConnector', function() {
 
   describe('get()', function() {
     afterEach(function() {
-      collectionDouble.findOne.restore();
+      collectionDouble.findOne.restore
+        && collectionDouble.findOne.restore();
     });
 
     it('should call collection.findOne() with correct params and invoke callback with expected value', function(done) {
@@ -155,11 +156,20 @@ describe('MongoConnector', function() {
         done();
       });
     });
+
+    it('should require a callback be passed', function() {
+      var connector = new MongoConnector();
+
+      expect(function() {
+        connector.get('/http://example.com/some/page');
+      }).to.throw('a callback function must be passed to get a record');
+    });
   });
 
   describe('set()', function() {
     afterEach(function() {
-      collectionDouble.update.restore();
+      collectionDouble.update.restore
+        && collectionDouble.update.restore();
     });
 
     it('should call collection.update() with correct params', function(done) {
@@ -214,6 +224,14 @@ describe('MongoConnector', function() {
 
         done();
       });
+    });
+
+    it('should not require a callback be passed', function() {
+      var connector = new MongoConnector();
+
+      expect(function() {
+        connector.set('/http://example.com/some/page', { foo: 'bar' });
+      }).to.not.throw(Error);
     });
   });
 });

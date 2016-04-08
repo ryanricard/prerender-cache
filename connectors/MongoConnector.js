@@ -1,3 +1,4 @@
+var assert = require('assert');
 var util = require('util');
 var MongoClient = require('mongodb').MongoClient;
 var AbstractConnector = require('./AbstractConnector');
@@ -54,6 +55,8 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
 
 MongoConnector.prototype.get = function(key, callback) {
   var context = this;
+
+  assert(callback instanceof Function, 'a callback function must be passed to get a record');
 
   this.db.collection(this.collectionName, function(err, collection) {
     collection.findOne({ key: key }, function (err, item) {
