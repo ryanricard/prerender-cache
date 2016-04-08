@@ -12,17 +12,17 @@ var connectorDouble = {
 // Assertion helpers
 var resAssertSend = {
   send: function() {
-    assert(true, 'middleware should invoke res.send()');
+    assert(true, 'plugin should invoke res.send()');
   }
 };
 
 var resAssertNoSend = {
   send: function() {
-    assert(false, 'middleware should not invoke res.send()');
+    assert(false, 'plugin should not invoke res.send()');
   }
 };
 
-var Middleware = require('../../lib/middleware');
+var Plugin = require('../../lib/plugin');
 
 describe('Plugin', function() {
   describe('beforePhantomRequest()', function() {
@@ -37,9 +37,9 @@ describe('Plugin', function() {
 
       var req = { method: 'POST', headers: {} };
 
-      var middleware = Middleware(connectorDouble, {});
+      var plugin = Plugin(connectorDouble, {});
 
-      middleware.beforePhantomRequest(req, resAssertNoSend, function next() {
+      plugin.beforePhantomRequest(req, resAssertNoSend, function next() {
         assert(expectation.verify());
         done();
       });
@@ -52,10 +52,10 @@ describe('Plugin', function() {
 
       var req = { method: 'GET', headers: {} };
 
-      var middleware = Middleware(connectorDouble, {});
+      var plugin = Plugin(connectorDouble, {});
 
-      middleware.beforePhantomRequest(req, resAssertNoSend, function next() {
-        assert(true, 'middleware should invoke next()');
+      plugin.beforePhantomRequest(req, resAssertNoSend, function next() {
+        assert(true, 'plugin should invoke next()');
         done();
       });
     });
@@ -67,10 +67,10 @@ describe('Plugin', function() {
 
       var req = { method: 'GET', headers: {} };
 
-      var middleware = Middleware(connectorDouble, {});
+      var plugin = Plugin(connectorDouble, {});
 
-      middleware.beforePhantomRequest(req, resAssertSend, function next() {
-        assert(false, 'middleware should not invoke next()');
+      plugin.beforePhantomRequest(req, resAssertSend, function next() {
+        assert(false, 'plugin should not invoke next()');
       });
     });
 
@@ -81,12 +81,12 @@ describe('Plugin', function() {
 
       var req = { method: 'GET', headers: { 'some-header': 'true' } };
 
-      var middleware = Middleware(connectorDouble, {
+      var plugin = Plugin(connectorDouble, {
         warmingHeader: 'some-header'
       });
 
-      middleware.beforePhantomRequest(req, resAssertNoSend, function next() {
-        assert(true, 'middleware should invoke next()');
+      plugin.beforePhantomRequest(req, resAssertNoSend, function next() {
+        assert(true, 'plugin should invoke next()');
         done();
       });
 
@@ -109,10 +109,10 @@ describe('Plugin', function() {
     it('should cache when exclude hook is not declared', function(done) {
       var expectation = sinon.mock(connectorDouble).expects('set').once();
 
-      var middleware = Middleware(connectorDouble);
+      var plugin = Plugin(connectorDouble);
 
-      middleware.afterPhantomRequest(req, res, function next() {
-        assert(true, 'middleware should invoke next()');
+      plugin.afterPhantomRequest(req, res, function next() {
+        assert(true, 'plugin should invoke next()');
         done();
       });
 
@@ -122,14 +122,14 @@ describe('Plugin', function() {
     it('should cache when exclude hook evaluates to false', function(done) {
       var expectation = sinon.mock(connectorDouble).expects('set').once();
 
-      var middleware = Middleware(connectorDouble, {
+      var plugin = Plugin(connectorDouble, {
         exclude: function() {
           return false;
         }
       });
 
-      middleware.afterPhantomRequest(req, res, function next() {
-        assert(true, 'middleware should invoke next()');
+      plugin.afterPhantomRequest(req, res, function next() {
+        assert(true, 'plugin should invoke next()');
         done();
       });
 
@@ -139,14 +139,14 @@ describe('Plugin', function() {
     it('should not cache when exclude hook evaluates to true', function(done) {
       var expectation = sinon.mock(connectorDouble).expects('set').never();
 
-      var middleware = Middleware(connectorDouble, {
+      var plugin = Plugin(connectorDouble, {
         exclude: function() {
           return true;
         }
       });
 
-      middleware.afterPhantomRequest(req, res, function next() {
-        assert(true, 'middleware should invoke next()');
+      plugin.afterPhantomRequest(req, res, function next() {
+        assert(true, 'plugin should invoke next()');
         done();
       });
 
