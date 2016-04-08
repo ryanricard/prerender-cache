@@ -79,12 +79,12 @@ MongoConnector.prototype.set = function(key, record, callback) {
 
   if (this.ttl > 0) record.expireAt = calculateExpiration(new Date(), this.ttl);
 
-  context.emit('record:persisting', key, record);
+  context.emit('record:saving', key, record);
 
   this.db.collection(this.collectionName, function(err, collection) {
     collection.update({ key: key }, { $set: record }, { upsert: true }, function(err, result, upserted) {
       if (err) throw err;
-      context.emit('record:persisted', key, record);
+      context.emit('record:saved', key, record);
       callback.apply(callback, arguments);
     });
   });

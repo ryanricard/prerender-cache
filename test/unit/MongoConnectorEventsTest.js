@@ -70,12 +70,16 @@ describe('MongoConnector events', function() {
 
   describe('set()', function() {
     it('should emit record persisted event upon a record being saved', function(done) {
-      assertions(1);
+      assertions(2);
 
       var connector = new MongoConnector();
 
-      connector.on('record:persisted', function() {
-        assert(true, 'MongoConnector instance should emit record persisted event when a record is saved');
+      connector.on('record:saving', function() {
+        assert(true, 'MongoConnector instance should emit an event prior to record being saved');
+      });
+
+      connector.on('record:saved', function() {
+        assert(true, 'MongoConnector instance should emit an event when a record is saved');
       });
 
       connector.set('/http://example.com/some/page', { value: 'foobar' }, function(err, result, upserted) {
