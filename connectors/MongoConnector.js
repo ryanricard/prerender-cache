@@ -12,7 +12,7 @@ var MongoConnector = function MongoConnector(options, onConnect, onCreateCollect
 
   this.url = options.url || 'mongodb://localhost:27017/prerender';
   this.collectionName = options.collectionName || 'pages';
-  this.ttl = options.ttl || null;
+  this.ttl = Number(options.ttl) || null;
 
   this._super.apply(this, arguments);
 
@@ -34,7 +34,7 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
       if (err) throw err;
 
       if (context.ttl) {
-        collection.ensureIndex({ createdAt: 1 }, { name: TTL_INDEX_NAME, expireAfterSeconds: context.ttl }, function(err, results) {
+        collection.ensureIndex({ expireAt: 1 }, { name: TTL_INDEX_NAME, expireAfterSeconds: 0 }, function(err, results) {
           if (err) throw err;
         });
       } else {

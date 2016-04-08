@@ -127,8 +127,8 @@ describe('MongoConnector', function() {
       var args = collectionDouble.ensureIndex.args[0];
 
       assert(collectionDouble.ensureIndex.calledOnce);
-      expect(args[0].createdAt).to.equal(1);
-      expect(args[1].expireAfterSeconds).to.equal(ttl);
+      expect(args[0].expireAt).to.equal(1);
+      expect(args[1].expireAfterSeconds).to.equal(0);
       assert(dropIndexMock.verify());
     });
   });
