@@ -80,13 +80,19 @@ describe('MongoConnector', function() {
     });
   });
 
-  describe('ensureIndex(), dropIndex()', function() {
+  describe('configure collection ttl', function() {
     afterEach(function() {
-      collectionDouble.ensureIndex.restore();
-      collectionDouble.dropIndex.restore();
+      collectionDouble.ensureIndex.restore
+        && collectionDouble.ensureIndex.restore();
+      collectionDouble.indexInformation.restore
+        && collectionDouble.indexInformation.restore();
+      collectionDouble.dropIndex.restore
+        && collectionDouble.dropIndex.restore();
     });
 
-    it('should drop index when a ttl is not specified', function() {
+    it('should drop index when an index exists and a ttl is not specified', function() {
+      sinon.stub(collectionDouble, 'indexInformation').yields(undefined, { record_ttl: 1 });
+
       var ensureIndexMock = sinon.mock(collectionDouble).expects('ensureIndex').never();
       var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').once().withArgs('record_ttl');
 
@@ -96,8 +102,21 @@ describe('MongoConnector', function() {
       assert(dropIndexMock.verify());
     });
 
-    it('should ensure index when a ttl is specified', function() {
+    it('should not drop index when an index does not exists and a ttl is not specified', function() {
+      sinon.stub(collectionDouble, 'indexInformation').yields(undefined, { unknown_index: 1 });
+
+      var ensureIndexMock = sinon.mock(collectionDouble).expects('ensureIndex').never();
+      var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').never();
+
+      new MongoConnector();
+
+      assert(ensureIndexMock.verify());
+      assert(dropIndexMock.verify());
+    });
+
+    it('should ensure an index exists when a ttl is specified', function() {
       sinon.spy(collectionDouble, 'ensureIndex');
+
       var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').never();
       var ttl = 1234;
 
@@ -178,6 +197,7 @@ describe('MongoConnector', function() {
 
     it('should persist record with ttl when specified', function(done) {
       sinon.spy(collectionDouble, 'update');
+
       var now = new Date();
       var ttl = 432000; // seconds
       var threshold = 2; // seconds
