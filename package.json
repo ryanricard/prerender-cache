@@ -28,6 +28,8 @@
     "sinon": "^1.17.3"
   },
   "dependencies": {
+    "async": "^2.0.0-rc.3",
+    "cassandra-driver": "^3.0.2",
     "mongodb": "^2.1.14",
     "object-assign": "^4.0.1"
   }
