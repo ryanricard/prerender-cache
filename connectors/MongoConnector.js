@@ -5,7 +5,7 @@ var AbstractConnector = require('./AbstractConnector');
 var calculateExpiration = require('../lib/util').calculateExpiration;
 
 var NOOP = function() {};
-var TTL_INDEX_NAME = 'record_ttl';
+var TTL_INDEX_PREFIX = 'document_ttl_';
 
 var MongoConnector = function MongoConnector(options, onConnect, onCreateCollection) {
   options = options || {};
@@ -27,25 +27,39 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
 
   var context = this;
 
+  var ttlConfigured = Boolean(this.ttl);
+  var currentIndexName = ttlConfigured ? TTL_INDEX_PREFIX + this.ttl : undefined;
+  var matchIndexPrefix = RegExp('^' + TTL_INDEX_PREFIX);
+
   MongoClient.connect(this.url, function(err, db) {
     if (err) throw err;
     context.db = db;
     context.db.createCollection(context.collectionName, function(err, collection) {
       if (err) throw err;
 
-      if (context.ttl) {
-        collection.ensureIndex({ expireAt: 1 }, { name: TTL_INDEX_NAME, expireAfterSeconds: 0 }, function(err, results) {
-          if (err) throw err;
-        });
-      } else {
-        collection.indexInformation(function(err, indexes) {
-          if (indexes[TTL_INDEX_NAME]) {
-            collection.dropIndex(TTL_INDEX_NAME, function(err, results) {
+      collection.indexInformation(function(err, indexes) {
+        var hasCurrentIndex = Boolean(indexes[currentIndexName]);
+        var indexNames = Object.keys(indexes);
+
+        // remove previously added ttl indexes that do not match the configured index
+        indexNames.forEach(function(indexName) {
+          var isCurrentIndex = indexName === currentIndexName;
+
+          // if not the configured index but is a previously configured ttl index, drop it
+          if (!isCurrentIndex && matchIndexPrefix.test(indexName)) {
+            collection.dropIndex(indexName, function(err, results) {
               if (err) throw err;
             });
           }
         });
-      }
+
+        // if configured index does not yet exist, create it
+        if (ttlConfigured && !hasCurrentIndex) {
+          collection.createIndex({ expireAt: 1 }, { name: currentIndexName, expireAfterSeconds: 0 }, function(err, results) {
+            if (err) throw err;
+          });
+        }
+      });
 
       onCreateCollection.apply(onCreateCollection, arguments);
     });

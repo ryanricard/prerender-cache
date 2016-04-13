@@ -80,56 +80,68 @@ describe('MongoConnector', function() {
     });
   });
 
-  describe('configure collection ttl', function() {
-    afterEach(function() {
-      collectionDouble.ensureIndex.restore
-        && collectionDouble.ensureIndex.restore();
-      collectionDouble.indexInformation.restore
-        && collectionDouble.indexInformation.restore();
-      collectionDouble.dropIndex.restore
-        && collectionDouble.dropIndex.restore();
-    });
-
-    it('should drop index when an index exists and a ttl is not specified', function() {
-      sinon.stub(collectionDouble, 'indexInformation').yields(undefined, { record_ttl: 1 });
-
-      var ensureIndexMock = sinon.mock(collectionDouble).expects('ensureIndex').never();
-      var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').once().withArgs('record_ttl');
-
-      new MongoConnector();
-
-      assert(ensureIndexMock.verify());
-      assert(dropIndexMock.verify());
-    });
-
-    it('should not drop index when an index does not exists and a ttl is not specified', function() {
-      sinon.stub(collectionDouble, 'indexInformation').yields(undefined, { unknown_index: 1 });
-
-      var ensureIndexMock = sinon.mock(collectionDouble).expects('ensureIndex').never();
-      var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').never();
-
-      new MongoConnector();
-
-      assert(ensureIndexMock.verify());
-      assert(dropIndexMock.verify());
-    });
-
-    it('should ensure an index exists when a ttl is specified', function() {
-      sinon.spy(collectionDouble, 'ensureIndex');
-
-      var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').never();
-      var ttl = 1234;
-
-      new MongoConnector({
-        ttl: ttl
+  describe('document ttl', function() {
+    describe('drop indexes', function() {
+      afterEach(function() {
+        collectionDouble.indexInformation.restore();
+        collectionDouble.dropIndex.restore();
       });
 
-      var args = collectionDouble.ensureIndex.args[0];
+      it('should not occur when no stale indexes exist', function() {
+        sinon.stub(collectionDouble, 'indexInformation').yields(undefined, { non_ttl_index: 1 });
 
-      assert(collectionDouble.ensureIndex.calledOnce);
-      expect(args[0].expireAt).to.equal(1);
-      expect(args[1].expireAfterSeconds).to.equal(0);
-      assert(dropIndexMock.verify());
+        var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').never();
+
+        new MongoConnector();
+
+        assert(dropIndexMock.verify());
+      });
+
+      it('should occur when a ttl is specified and stale indexes exist', function() {
+        sinon.stub(collectionDouble, 'indexInformation').yields(undefined, { non_ttl_index: 1, document_ttl_123: 1, document_ttl_456: 1, document_ttl_789: 1 });
+
+        var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').thrice();
+
+        new MongoConnector({
+          ttl: 999
+        });
+
+        assert(dropIndexMock.verify());
+      });
+
+      it('should occur when a ttl is not specified and stale indexes exist', function() {
+        sinon.stub(collectionDouble, 'indexInformation').yields(undefined, { non_ttl_index: 1, document_ttl_123: 1, document_ttl_456: 1, document_ttl_789: 1 });
+
+        var dropIndexMock = sinon.mock(collectionDouble).expects('dropIndex').thrice();
+
+        new MongoConnector();
+
+        assert(dropIndexMock.verify());
+      });
+    });
+
+    describe('create index', function() {
+      afterEach(function() {
+        collectionDouble.createIndex.restore();
+      });
+
+      it('should create an index when a ttl is specified', function() {
+        var createIndexMock = sinon.mock(collectionDouble).expects('createIndex').once().withArgs({ expireAt: 1 }, { name: 'document_ttl_1234', expireAfterSeconds: 0 });
+
+        new MongoConnector({
+          ttl: 1234
+        });
+
+        assert(createIndexMock.verify());
+      });
+
+      it('should not create an index when a ttl is not specified', function() {
+        var createIndexMock = sinon.mock(collectionDouble).expects('createIndex').never();
+
+        new MongoConnector();
+
+        assert(createIndexMock.verify());
+      });
     });
   });
 
