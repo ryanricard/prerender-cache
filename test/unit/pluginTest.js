@@ -35,7 +35,7 @@ describe('Plugin', function() {
 
       var expectation = sinon.mock(connectorDouble).expects('get').never();
 
-      var req = { method: 'POST', headers: {} };
+      var req = { method: 'POST', headers: {}, prerender: {} };
 
       var plugin = Plugin(connectorDouble, {});
 
@@ -50,7 +50,7 @@ describe('Plugin', function() {
 
       sinon.stub(connectorDouble, 'get').callsArgWith(1, undefined, null);
 
-      var req = { method: 'GET', headers: {} };
+      var req = { method: 'GET', headers: {}, prerender: {} };
 
       var plugin = Plugin(connectorDouble, {});
 
@@ -65,7 +65,7 @@ describe('Plugin', function() {
 
       sinon.stub(connectorDouble, 'get').callsArgWith(1, undefined, { value: true });
 
-      var req = { method: 'GET', headers: {} };
+      var req = { method: 'GET', headers: {}, prerender: {} };
 
       var plugin = Plugin(connectorDouble, {});
 
@@ -79,7 +79,7 @@ describe('Plugin', function() {
 
       var expectation = sinon.mock(connectorDouble).expects('get').never();
 
-      var req = { method: 'GET', headers: { 'some-header': 'true' } };
+      var req = { method: 'GET', headers: { 'some-header': 'true' }, prerender: {} };
 
       var plugin = Plugin(connectorDouble, {
         warmingHeader: 'some-header'
