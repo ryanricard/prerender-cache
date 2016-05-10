@@ -1,6 +1,6 @@
 {
   "name": "prerender-cache",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Prerender plugin for caching rendered pages",
   "main": "index.js",
   "scripts": {
