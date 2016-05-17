@@ -37,6 +37,10 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
     context.db.createCollection(context.collectionName, function(err, collection) {
       if (err) throw err;
 
+      collection.ensureIndex({ key: 1 }, { background: true }, function(err, results) {
+        if (err) throw err;
+      });
+
       collection.indexInformation(function(err, indexes) {
         var hasCurrentIndex = Boolean(indexes[currentIndexName]);
         var indexNames = Object.keys(indexes);
