@@ -99,6 +99,9 @@ describe('Plugin', function() {
     var req = {
       prerender: {
         documentHTML: '<b>foobar</b>'
+      },
+      prerenderCache: {
+        key: 'foo'
       }
     };
 
