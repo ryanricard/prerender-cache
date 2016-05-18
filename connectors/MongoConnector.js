@@ -37,6 +37,8 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
     context.db.createCollection(context.collectionName, function(err, collection) {
       if (err) throw err;
 
+      context.collection = collection;
+
       collection.ensureIndex({ key: 1 }, { background: true }, function(err, results) {
         if (err) throw err;
       });
@@ -76,17 +78,15 @@ MongoConnector.prototype.get = function(key, callback) {
 
   assert(callback instanceof Function, 'a callback function must be passed to get a record');
 
-  this.db.collection(this.collectionName, function(err, collection) {
-    collection.findOne({ key: key }, function (err, item) {
-      if (err) throw err;
+  context.collection.findOne({ key: key }, function (err, item) {
+    if (err) throw err;
 
-      if (item && item.value) {
-        context.emit('record:found', item.key, item.value);
-      } else {
-        context.emit('record:not-found', key);
-      }
-      callback.apply(callback, arguments);
-    });
+    if (item && item.value) {
+      context.emit('record:found', item.key, item.value);
+    } else {
+      context.emit('record:not-found', key);
+    }
+    callback.apply(callback, arguments);
   });
 };
 
@@ -99,12 +99,10 @@ MongoConnector.prototype.set = function(key, record, callback) {
 
   context.emit('record:saving', key, record);
 
-  this.db.collection(this.collectionName, function(err, collection) {
-    collection.update({ key: key }, { $set: record }, { upsert: true }, function(err, result, upserted) {
-      if (err) throw err;
-      context.emit('record:saved', key, record);
-      callback.apply(callback, arguments);
-    });
+  context.collection.update({ key: key }, { $set: record }, { upsert: true }, function(err, result, upserted) {
+    if (err) throw err;
+    context.emit('record:saved', key, record);
+    callback.apply(callback, arguments);
   });
 };
 
