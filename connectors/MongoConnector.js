@@ -10,9 +10,13 @@ var TTL_INDEX_PREFIX = 'document_ttl_';
 var MongoConnector = function MongoConnector(options, onConnect, onCreateCollection) {
   options = options || {};
 
+  // prepare options
   this.url = options.url || 'mongodb://localhost:27017/prerender';
   this.collectionName = options.collectionName || 'pages';
   this.ttl = Number(options.ttl) || null;
+
+  // assign connection name
+  this.name = this.url;
 
   this._super.apply(this, arguments);
 
@@ -67,9 +71,9 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
         }
       });
 
-      onCreateCollection.apply(onCreateCollection, arguments);
+      onCreateCollection.apply(context, arguments);
     });
-    onConnect.apply(onCreateCollection, arguments);
+    onConnect.apply(context, arguments);
   });
 };
 

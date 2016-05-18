@@ -18,6 +18,9 @@ var CassandraConnector = function CassandraConnector(options, onConnect, onCreat
   this.table = options.table || 'pages';
   this.ttl = Number(options.ttl) || null;
 
+  // assign connection name
+  this.name = this.contactPoints.join(', ');
+
   this.keyspaceTable = this.keyspace + '.' + this.table;
 
   this._super.apply(this, arguments);
@@ -59,11 +62,11 @@ CassandraConnector.prototype.connect = function connect(onConnect, onCreateColle
       var query = "CREATE TABLE IF NOT EXISTS " + context.keyspaceTable + " (key text, value text, origin text, created_at timestamp, expire_at timestamp, PRIMARY KEY(key))";
       context.client.execute(query, function(err) {
         if (err) throw err;
-        onCreateCollection.apply(null, arguments);
+        onCreateCollection.apply(context, arguments);
         next();
       });
     },
-  ], onConnect);
+  ], onConnect.bind(context));
 };
 
 CassandraConnector.prototype.get = function get(key, callback) {
