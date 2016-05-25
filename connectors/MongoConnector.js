@@ -13,6 +13,7 @@ var MongoConnector = function MongoConnector(options, onConnect, onCreateCollect
   // prepare options
   this.url = options.url || 'mongodb://localhost:27017/prerender';
   this.collectionName = options.collectionName || 'pages';
+  this.index = typeof options.index === 'boolean' ? options.index : true;
   this.ttl = Number(options.ttl) || null;
 
   // assign connection name
@@ -43,9 +44,14 @@ MongoConnector.prototype.connect = function connect(onConnect, onCreateCollectio
 
       context.collection = collection;
 
-      collection.ensureIndex({ key: 1 }, { background: true }, function(err, results) {
-        if (err) throw err;
-      });
+      if (context.index) {
+        collection.ensureIndex({ key: 1 }, { background: true }, function(err, results) {
+          if (err) throw err;
+        });
+      } else {
+        // Don't throw an error with callback; call should be idempotent, not interupting execution when index does not exist
+        collection.dropIndex({ key: 1 });
+      }
 
       collection.indexInformation(function(err, indexes) {
         var hasCurrentIndex = Boolean(indexes[currentIndexName]);
