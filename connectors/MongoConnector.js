@@ -91,8 +91,8 @@ MongoConnector.prototype.get = function(key, callback) {
   context.collection.findOne({ key: key }, function (err, item) {
     if (err) throw err;
 
-    if (item && item.value) {
-      context.emit('record:found', item.key, item.value);
+    if (item && item.html) {
+      context.emit('record:found', item.key, item.html);
     } else {
       context.emit('record:not-found', key);
     }
