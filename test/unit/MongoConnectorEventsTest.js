@@ -24,7 +24,7 @@ describe('MongoConnector events', function() {
 
       sinon.stub(collectionDouble, 'findOne', function(key, cb) {
         cb(undefined, {
-          value: 'winning'
+          html: 'winning'
         });
       });
 
@@ -39,7 +39,7 @@ describe('MongoConnector events', function() {
       });
 
       connector.get('/http://example.com/some/page', function(err, item) {
-        expect(item.value).to.equal('winning');
+        expect(item.html).to.equal('winning');
         done();
       });
     });
@@ -82,7 +82,7 @@ describe('MongoConnector events', function() {
         assert(true, 'MongoConnector instance should emit an event when a record is saved');
       });
 
-      connector.set('/http://example.com/some/page', { value: 'foobar' }, function(err, result, upserted) {
+      connector.set('/http://example.com/some/page', { html: 'foobar' }, function(err, result, upserted) {
         done();
       });
     });

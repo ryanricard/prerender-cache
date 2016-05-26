@@ -63,7 +63,7 @@ describe('Plugin', function() {
     it('should respond immediately when page is found in cache', function() {
       assertions(1);
 
-      sinon.stub(connectorDouble, 'get').callsArgWith(1, undefined, { value: true });
+      sinon.stub(connectorDouble, 'get').callsArgWith(1, undefined, { html: true });
 
       var req = { method: 'GET', headers: {}, prerender: {} };
 
