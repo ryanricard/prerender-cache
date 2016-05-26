@@ -59,7 +59,17 @@ CassandraConnector.prototype.connect = function connect(onConnect, onCreateColle
     },
 
     function(next) {
-      var query = "CREATE TABLE IF NOT EXISTS " + context.keyspaceTable + " (key text, value text, origin text, created_at timestamp, expire_at timestamp, PRIMARY KEY(key))";
+      var query = [
+        'CREATE TABLE IF NOT EXISTS ' + context.keyspaceTable + ' (',
+        'key text,',
+        'created_at timeuuid,',
+        'html text,',
+        'origin text,',
+        'expire_at timestamp,',
+        'PRIMARY KEY ((key), created_at)',
+        ') WITH CLUSTERING ORDER BY (created_at DESC);'
+      ].join(' ');
+
       context.client.execute(query, function(err) {
         if (err) throw err;
         onCreateCollection.apply(context, arguments);
@@ -74,14 +84,15 @@ CassandraConnector.prototype.get = function get(key, callback) {
 
   assert(callback instanceof Function, 'a callback function must be passed to get a record');
 
-  var query = "SELECT * FROM " + this.keyspaceTable + " WHERE key = ?";
+  var query = "SELECT key, html FROM " + this.keyspaceTable + " WHERE key = ? LIMIT 1";
+
   this.client.execute(query, [key], { prepare: true }, function (err, result) {
     if (err) return next(err);
 
     var item = result.first();
 
-    if (item && item.value) {
-      context.emit('record:found', item.key, item.value);
+    if (item && item.html) {
+      context.emit('record:found', item.key, item.html);
     } else {
       context.emit('record:not-found', key);
     }
@@ -97,14 +108,14 @@ CassandraConnector.prototype.set = function set(key, record, callback) {
 
   context.emit('record:saving', key, record);
 
-  var query = 'INSERT INTO ' + this.keyspaceTable + ' (key, value, origin, created_at, expire_at) VALUES (?, ?, ?, ?, ?)';
+  var query = 'INSERT INTO ' + this.keyspaceTable + ' (key, created_at, html, origin, expire_at) VALUES (?, now(), ?, ?, ?)';
 
   if (this.ttl > 0) {
     record.expireAt = calculateExpiration(new Date(), this.ttl);
     query += ' USING TTL ' + this.ttl;
   }
 
-  this.client.execute(query, [key, record.value, record.origin, record.createdAt, record.expireAt], { prepare: true }, function (err, result) {
+  this.client.execute(query, [key, record.html, record.origin, record.expireAt], { prepare: true }, function (err, result) {
     if (err) throw err;
     context.emit('record:saved', key, record);
     callback.apply(callback, arguments);
