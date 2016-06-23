@@ -64,7 +64,6 @@ CassandraConnector.prototype.connect = function connect(onConnect, onCreateColle
       var query = [
         'CREATE TABLE IF NOT EXISTS ' + context.keyspaceTable + ' (',
         'key text,',
-        'created_at timeuuid,',
         'html text,',
         'origin text,',
         'expire_at timestamp,'
@@ -73,11 +72,13 @@ CassandraConnector.prototype.connect = function connect(onConnect, onCreateColle
       // if table exists and immutableWrite option is changed, the table will need to be recreated
       if (context.immutableWrite) {
         query.push(
+          'created_at timeuuid,',
           'PRIMARY KEY ((key), created_at)',
           ') WITH CLUSTERING ORDER BY (created_at DESC);'
         );
       } else {
         query.push(
+          'created_at timestamp,',
           'PRIMARY KEY (key)',
           ');'
         );
@@ -123,7 +124,8 @@ CassandraConnector.prototype.set = function set(key, record, callback) {
 
   context.emit('record:saving', key, record);
 
-  var query = 'INSERT INTO ' + this.keyspaceTable + ' (key, created_at, html, origin, expire_at) VALUES (?, now(), ?, ?, ?)';
+  var now = context.immutableWrite ? 'now()' : 'dateOf(now())';
+  var query = 'INSERT INTO ' + this.keyspaceTable + ' (key, html, origin, created_at, expire_at) VALUES (?, ?, ?, ' + now + ', ?)';
 
   if (this.ttl > 0) {
     record.expireAt = calculateExpiration(new Date(), this.ttl);
