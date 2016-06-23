@@ -6,7 +6,8 @@ var sinon = require('sinon');
 // Doubles
 var connectorDouble = {
   get: function() {},
-  set: function() {}
+  set: function() {},
+  emit: function() {}
 };
 
 // Assertion helpers
