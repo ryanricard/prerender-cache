@@ -17,6 +17,8 @@ var CassandraConnector = function CassandraConnector(options, onConnect, onCreat
   this.keyspace = options.keyspace || 'prerender';
   this.table = options.table || 'pages';
   this.ttl = Number(options.ttl) || null;
+  // if table exists and immutableWrite option is changed, the table will need to be recreated
+  this.immutableWrite = typeof options.immutableWrite === 'boolean' ? options.immutableWrite : false;
 
   // assign connection name
   this.name = this.contactPoints.join(', ');
@@ -65,10 +67,23 @@ CassandraConnector.prototype.connect = function connect(onConnect, onCreateColle
         'created_at timeuuid,',
         'html text,',
         'origin text,',
-        'expire_at timestamp,',
-        'PRIMARY KEY ((key), created_at)',
-        ') WITH CLUSTERING ORDER BY (created_at DESC);'
-      ].join(' ');
+        'expire_at timestamp,'
+      ];
+
+      // if table exists and immutableWrite option is changed, the table will need to be recreated
+      if (context.immutableWrite) {
+        query.push(
+          'PRIMARY KEY ((key), created_at)',
+          ') WITH CLUSTERING ORDER BY (created_at DESC);'
+        );
+      } else {
+        query.push(
+          'PRIMARY KEY (key)',
+          ');'
+        );
+      }
+
+      query = query.join(' ');
 
       context.client.execute(query, function(err) {
         if (err) throw err;
