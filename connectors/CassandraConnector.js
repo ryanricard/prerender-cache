@@ -103,7 +103,7 @@ CassandraConnector.prototype.get = function get(key, callback) {
   var query = "SELECT key, html FROM " + this.keyspaceTable + " WHERE key = ? LIMIT 1";
 
   this.client.execute(query, [key], { prepare: true }, function (err, result) {
-    if (err) return next(err);
+    if (err) throw err;
 
     var item = result.first();
 
