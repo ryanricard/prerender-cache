@@ -74,13 +74,13 @@ CassandraConnector.prototype.connect = function connect(onConnect, onCreateColle
         query.push(
           'created_at timeuuid,',
           'PRIMARY KEY ((key), created_at)',
-          ') WITH CLUSTERING ORDER BY (created_at DESC);'
+          ') WITH gc_grace_seconds = 0 AND CLUSTERING ORDER BY (created_at DESC);'
         );
       } else {
         query.push(
           'created_at timestamp,',
           'PRIMARY KEY (key)',
-          ');'
+          ') WITH gc_grace_seconds = 0;'
         );
       }
 
